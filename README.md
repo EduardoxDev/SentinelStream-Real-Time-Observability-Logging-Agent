@@ -369,25 +369,6 @@ docker push YOUR_ECR_URL:agent-latest
 docker push YOUR_ECR_URL:server-latest
 ```
 
-## 📚 Documentação Completa
-
-- [README.md](README.md) - Visão geral e quick start
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Arquitetura e design patterns
-- [BENCHMARKS.md](BENCHMARKS.md) - Performance e benchmarks
-- [DEPLOYMENT.md](DEPLOYMENT.md) - Guia completo de deploy
-- [README_FEATURES.md](README_FEATURES.md) - Detalhes dos recursos implementados
-
-## ✅ Recursos Implementados
-
-- [x] **gRPC entre Agent e Server** - Comunicação de alta performance
-- [x] **Múltiplos Notificadores** - Slack, Discord, Email, Console
-- [x] **Dashboard com Gráficos Históricos** - Chart.js com time ranges
-- [x] **Suporte a Kubernetes** - Manifests + Helm Charts completos
-- [x] **Exportador Prometheus** - Métricas no formato Prometheus
-- [x] **Autenticação JWT** - Middleware de autenticação e autorização
-- [x] **Alertas Customizáveis** - Configuração por container
-- [x] **Multi-tenancy** - Estrutura preparada para isolamento
-
 ## 📄 Licença
 
 MIT
