@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "observability.fullname" . }}-agent
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+    component: agent
+spec:
+  replicas: {{ .Values.replicaCount.agent }}
+  selector:
+    matchLabels:
+      {{- include "observability.selectorLabels" . | nindent 6 }}
+      component: agent
+  template:
+    metadata:
+      labels:
+        {{- include "observability.selectorLabels" . | nindent 8 }}
+        component: agent
+    spec:
+      serviceAccountName: {{ include "observability.serviceAccountName" . }}
+      containers:
+      - name: agent
+        image: "{{ .Values.image.agent.repository }}:{{ .Values.image.agent.tag }}"
+        imagePullPolicy: {{ .Values.image.agent.pullPolicy }}
+        env:
+        - name: INFLUXDB_URL
+          value: {{ .Values.influxdb.url | quote }}
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "observability.fullname" . }}-secrets
+              key: influxdb-token
+        - name: REDIS_ADDR
+          value: {{ .Values.redis.addr | quote }}
+        resources:
+          {{- toYaml .Values.resources.agent | nindent 10 }}
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+          readOnly: true
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "observability.fullname" . }}-server
+  labels:
+    {{- include "observability.labels" . | nindent 4 }}
+    component: server
+spec:
+  replicas: {{ .Values.replicaCount.server }}
+  selector:
+    matchLabels:
+      {{- include "observability.selectorLabels" . | nindent 6 }}
+      component: server
+  template:
+    metadata:
+      labels:
+        {{- include "observability.selectorLabels" . | nindent 8 }}
+        component: server
+    spec:
+      containers:
+      - name: server
+        image: "{{ .Values.image.server.repository }}:{{ .Values.image.server.tag }}"
+        imagePullPolicy: {{ .Values.image.server.pullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 50051
+          name: grpc
+        {{- if .Values.prometheus.enabled }}
+        - containerPort: {{ .Values.prometheus.port }}
+          name: metrics
+        {{- end }}
+        env:
+        - name: INFLUXDB_URL
+          value: {{ .Values.influxdb.url | quote }}
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "observability.fullname" . }}-secrets
+              key: influxdb-token
+        - name: REDIS_ADDR
+          value: {{ .Values.redis.addr | quote }}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "observability.fullname" . }}-secrets
+              key: jwt-secret
+        resources:
+          {{- toYaml .Values.resources.server | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5

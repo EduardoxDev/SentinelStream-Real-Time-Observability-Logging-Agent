@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-agent
+  namespace: observability
+  labels:
+    app: observability-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observability-agent
+  template:
+    metadata:
+      labels:
+        app: observability-agent
+    spec:
+      serviceAccountName: observability-agent
+      containers:
+      - name: agent
+        image: observability-agent:latest
+        imagePullPolicy: Always
+        env:
+        - name: INFLUXDB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: observability-config
+              key: influxdb_url
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: observability-secrets
+              key: influxdb_token
+        - name: REDIS_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: observability-config
+              key: redis_addr
+        - name: GRPC_SERVER_ADDR
+          value: "observability-server:50051"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+          readOnly: true
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-server
+  namespace: observability
+  labels:
+    app: observability-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: observability-server
+  template:
+    metadata:
+      labels:
+        app: observability-server
+    spec:
+      containers:
+      - name: server
+        image: observability-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 50051
+          name: grpc
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: INFLUXDB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: observability-config
+              key: influxdb_url
+        - name: INFLUXDB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: observability-secrets
+              key: influxdb_token
+        - name: REDIS_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: observability-config
+              key: redis_addr
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: observability-secrets
+              key: jwt_secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5

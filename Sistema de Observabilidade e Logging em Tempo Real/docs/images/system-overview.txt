@@ -1,0 +1,12 @@
+PLACEHOLDER: Create banner image here
+
+Recommended size: 1200x400px
+Format: PNG
+Background: #0f172a (dark blue)
+
+Use tools like:
+- Figma: https://www.figma.com
+- Canva: https://www.canva.com
+- Carbon: https://carbon.now.sh
+
+Or use the ASCII art from docs/images/README.md

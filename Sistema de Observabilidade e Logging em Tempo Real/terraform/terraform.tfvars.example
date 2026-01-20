@@ -1,0 +1,5 @@
+aws_region         = "us-east-1"
+environment        = "production"
+ecr_repository_url = "123456789.dkr.ecr.us-east-1.amazonaws.com/observability"
+influxdb_token     = "your-super-secret-token-here"
+domain_name        = "observability.example.com"

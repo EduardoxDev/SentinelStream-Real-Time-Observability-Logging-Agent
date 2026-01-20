@@ -1,0 +1,78 @@
+replicaCount:
+  agent: 1
+  server: 2
+
+image:
+  agent:
+    repository: observability-agent
+    tag: latest
+    pullPolicy: Always
+  server:
+    repository: observability-server
+    tag: latest
+    pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  httpPort: 80
+  grpcPort: 50051
+  metricsPort: 9090
+
+resources:
+  agent:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  server:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+influxdb:
+  url: "http://influxdb:8086"
+  org: "observability"
+  bucket: "metrics"
+  token: "your-super-secret-token"
+
+redis:
+  addr: "redis:6379"
+
+alerts:
+  cpuThreshold: 90.0
+  memoryThreshold: 85.0
+  cooldownPeriod: "5m"
+
+auth:
+  jwtSecret: "your-jwt-secret-key"
+  tokenDuration: "24h"
+
+notifiers:
+  slack:
+    enabled: false
+    webhookURL: ""
+  discord:
+    enabled: false
+    webhookURL: ""
+  email:
+    enabled: false
+    smtpHost: "smtp.gmail.com"
+    smtpPort: "587"
+    from: ""
+    password: ""
+    to: []
+
+prometheus:
+  enabled: true
+  port: 9090
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80

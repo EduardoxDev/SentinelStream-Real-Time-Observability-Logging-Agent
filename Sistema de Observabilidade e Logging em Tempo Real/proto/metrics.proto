@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package metrics;
+
+option go_package = "observability-system/proto/gen";
+
+service MetricsService {
+  rpc StreamMetrics(stream MetricData) returns (stream MetricResponse);
+  rpc GetContainerMetrics(ContainerRequest) returns (ContainerMetricsResponse);
+  rpc GetHistoricalMetrics(HistoricalRequest) returns (HistoricalResponse);
+  rpc SubscribeToMetrics(SubscriptionRequest) returns (stream MetricData);
+}
+
+message MetricData {
+  string container_id = 1;
+  string container_name = 2;
+  double cpu_percent = 3;
+  uint64 memory_usage = 4;
+  uint64 memory_limit = 5;
+  double memory_percent = 6;
+  uint64 network_rx = 7;
+  uint64 network_tx = 8;
+  int64 timestamp = 9;
+}
+
+message MetricResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ContainerRequest {
+  string container_id = 1;
+}
+
+message ContainerMetricsResponse {
+  repeated MetricData metrics = 1;
+}
+
+message HistoricalRequest {
+  string container_id = 1;
+  int64 start_time = 2;
+  int64 end_time = 3;
+}
+
+message HistoricalResponse {
+  repeated MetricData metrics = 1;
+  int32 total_count = 2;
+}
+
+message SubscriptionRequest {
+  repeated string container_ids = 1;
+  bool all_containers = 2;
+}

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-server
+  namespace: observability
+  labels:
+    app: observability-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  - port: 50051
+    targetPort: 50051
+    protocol: TCP
+    name: grpc
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: metrics
+  selector:
+    app: observability-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-server-lb
+  namespace: observability
+  labels:
+    app: observability-server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: observability-server
